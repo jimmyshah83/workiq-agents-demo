@@ -50,6 +50,7 @@ def show_help():
     console.print(f"\n[bold]Usage:[/bold]")
     console.print(f"  python main.py <step>")
     console.print(f"  python main.py step1 --query \"yesterday's standup\"")
+    console.print(f"  python main.py step1 --list       # pick from recent meetings")
     console.print()
 
 
@@ -68,8 +69,11 @@ def run_step(step_name: str, **kwargs):
     import importlib
     module = importlib.import_module(module_path)
 
-    if step_name == "step1" and "query" in kwargs:
-        return module.run(meeting_query=kwargs["query"])
+    if step_name == "step1":
+        return module.run(
+            meeting_query=kwargs.get("query"),
+            list_first=kwargs.get("list_first", False),
+        )
     return module.run()
 
 
@@ -107,12 +111,14 @@ def cli():
 
     step = args[0].lower()
 
-    # Parse --query flag for step1
+    # Parse flags for step1
     kwargs = {}
     if "--query" in args:
         idx = args.index("--query")
         if idx + 1 < len(args):
             kwargs["query"] = args[idx + 1]
+    if "--list" in args:
+        kwargs["list_first"] = True
 
     if step == "all":
         run_all()

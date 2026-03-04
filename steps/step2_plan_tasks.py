@@ -10,7 +10,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from copilot import CopilotClient
+from copilot import CopilotClient, PermissionHandler
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -61,11 +61,15 @@ async def plan_tasks(transcript: str | None = None) -> dict:
     console.print(Panel("[bold cyan]Step 2:[/] Planning implementation tasks", subtitle="Copilot SDK"))
     console.print(f"  Transcript length: [bold]{len(transcript)}[/bold] characters\n")
 
-    client = CopilotClient()
+    import os
+    cli_env = {k: v for k, v in os.environ.items()
+               if k not in ("GITHUB_TOKEN", "GH_TOKEN")}
+    client = CopilotClient({"use_logged_in_user": True, "env": cli_env})
     await client.start()
 
     session = await client.create_session({
         "model": COPILOT_MODEL,
+        "on_permission_request": PermissionHandler.approve_all,
     })
 
     collected_response = []

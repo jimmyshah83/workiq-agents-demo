@@ -1,7 +1,9 @@
 {
-    "workiq": {
-        "command": "npx",
-        "args": ["-y", "@microsoft/workiq", "mcp"],
-        "tools": ["*"]
+    "mcpServers": {
+        "workiq": {
+            "command": "npx",
+            "args": ["-y", "@microsoft/workiq", "--tenant-id", "3d61ae6a-a77f-4fdf-9ff9-7a767f55cf04", "mcp"],
+            "tools": ["*"]
+        }
     }
 }

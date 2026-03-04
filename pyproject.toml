@@ -11,5 +11,11 @@ dependencies = [
     "requests>=2.31.0",
 ]
 
+[tool.setuptools.packages.find]
+include = ["steps*"]
+
+[tool.setuptools]
+py-modules = ["main", "config"]
+
 [project.scripts]
 workiq-demo = "main:cli"
