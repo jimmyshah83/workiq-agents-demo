@@ -20,14 +20,14 @@ GITHUB_OWNER = os.getenv("GITHUB_OWNER", "")
 COPILOT_MODEL = os.getenv("COPILOT_MODEL", "gpt-5")
 
 # Work IQ
-WORKIQ_TENANT_ID = os.getenv("WORKIQ_TENANT_ID", "")
+WORKIQ_ACCOUNT = os.getenv("WORKIQ_ACCOUNT", "")
 
 # MCP server config for Work IQ (used by the Copilot CLI)
 WORKIQ_MCP_CONFIG = {
     "mcpServers": {
         "workiq": {
             "command": "npx",
-            "args": ["-y", "@microsoft/workiq", "--tenant-id", WORKIQ_TENANT_ID, "mcp"] if WORKIQ_TENANT_ID else ["-y", "@microsoft/workiq", "mcp"],
+            "args": ["-y", "@microsoft/workiq", "--account", WORKIQ_ACCOUNT, "mcp"] if WORKIQ_ACCOUNT else ["-y", "@microsoft/workiq", "mcp"],
             "tools": ["*"],
         }
     }

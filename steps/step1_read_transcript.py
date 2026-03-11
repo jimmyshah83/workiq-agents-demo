@@ -15,7 +15,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 
-from config import DATA_DIR, WORKIQ_TENANT_ID
+from config import DATA_DIR, WORKIQ_ACCOUNT
 
 console = Console()
 
@@ -27,8 +27,8 @@ console = Console()
 def _workiq_ask(question: str) -> str:
     """Run ``npx -y @microsoft/workiq ask -q <question>`` and return stdout."""
     cmd = ["npx", "-y", "@microsoft/workiq"]
-    if WORKIQ_TENANT_ID:
-        cmd += ["--tenant-id", WORKIQ_TENANT_ID]
+    if WORKIQ_ACCOUNT:
+        cmd += ["--account", WORKIQ_ACCOUNT]
     cmd += ["ask", "-q", question]
 
     console.print(f"[dim]  Running: {' '.join(cmd[:6])}…[/dim]")
