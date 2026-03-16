@@ -52,24 +52,13 @@ def create_repo(repo_name: str | None = None, description: str | None = None) ->
     g = Github(auth=auth)
 
     try:
-        if GITHUB_OWNER:
-            # Create under an organization
-            org = g.get_organization(GITHUB_OWNER)
-            repo = org.create_repo(
-                name=repo_name,
-                description=description or "",
-                auto_init=True,
-                private=False,
-            )
-        else:
-            # Create under the authenticated user's account
-            user = g.get_user()
-            repo = user.create_repo(
-                name=repo_name,
-                description=description or "",
-                auto_init=True,
-                private=False,
-            )
+        user = g.get_user()
+        repo = user.create_repo(
+            name=repo_name,
+            description=description or "",
+            auto_init=True,
+            private=False,
+        )
 
         result = {
             "repo_name": repo.full_name,

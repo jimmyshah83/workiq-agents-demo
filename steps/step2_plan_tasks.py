@@ -8,6 +8,7 @@ Run:  python main.py step2
 
 import asyncio
 import json
+import re
 from pathlib import Path
 
 from copilot import CopilotClient, PermissionHandler
@@ -36,8 +37,50 @@ Return your plan as a JSON object with this exact structure:
   ]
 }
 
-IMPORTANT: Return ONLY the JSON object, no markdown fencing or extra text.\
+CRITICAL RULES:
+- Return ONLY the JSON object above — no markdown fencing, no explanation, no extra text.
+- Do NOT use any tools or read any files. Work ONLY from the transcript provided.
+- Your entire response must be valid JSON and nothing else.\
 """
+
+
+def _extract_json_plan(text: str) -> dict | None:
+    """Try multiple strategies to extract a JSON plan from the response."""
+    stripped = text.strip()
+
+    # Strategy 1: entire response is JSON
+    try:
+        return json.loads(stripped)
+    except json.JSONDecodeError:
+        pass
+
+    # Strategy 2: JSON wrapped in markdown code fences
+    fence_match = re.search(r"```(?:json)?\s*\n(.*?)```", stripped, re.DOTALL)
+    if fence_match:
+        try:
+            return json.loads(fence_match.group(1).strip())
+        except json.JSONDecodeError:
+            pass
+
+    # Strategy 3: find the outermost { ... } containing "issues"
+    for match in re.finditer(r"\{", stripped):
+        start = match.start()
+        depth = 0
+        for i in range(start, len(stripped)):
+            if stripped[i] == "{":
+                depth += 1
+            elif stripped[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    candidate = stripped[start : i + 1]
+                    if '"issues"' in candidate:
+                        try:
+                            return json.loads(candidate)
+                        except json.JSONDecodeError:
+                            pass
+                    break
+
+    return None
 
 
 async def plan_tasks(transcript: str | None = None) -> dict:
@@ -105,16 +148,26 @@ MEETING TRANSCRIPT:
     full_response = "".join(collected_response)
 
     # Parse the JSON plan from the response
-    try:
-        # Try to extract JSON from the response (handle markdown fencing)
-        json_str = full_response.strip()
-        if json_str.startswith("```"):
-            # Remove markdown code fences
-            lines = json_str.split("\n")
-            json_str = "\n".join(lines[1:-1])
-        plan = json.loads(json_str)
-    except json.JSONDecodeError:
-        console.print("[yellow]Warning:[/yellow] Could not parse JSON directly, saving raw response.")
+    plan = _extract_json_plan(full_response)
+
+    if plan is None:
+        # Retry: ask the model to return just the JSON
+        console.print("[yellow]Retrying:[/yellow] asking for JSON-only response...\n")
+        collected_response.clear()
+        done.clear()
+        await session.send({
+            "prompt": (
+                "Your previous response could not be parsed as JSON. "
+                "Please respond with ONLY the raw JSON object — no markdown, "
+                "no explanation, no code fences. Just the JSON."
+            ),
+        })
+        await done.wait()
+        retry_response = "".join(collected_response)
+        plan = _extract_json_plan(retry_response)
+
+    if plan is None:
+        console.print("[red]✗[/red] Could not extract JSON plan from Copilot response.")
         plan = {"raw_response": full_response, "issues": []}
 
     # Display the plan
