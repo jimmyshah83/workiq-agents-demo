@@ -78,14 +78,13 @@ def get_transcript_for_meeting(meeting_description: str) -> str:
 
 def read_meeting_transcript(
     meeting_query: str | None = None,
-    list_first: bool = False,
 ) -> dict:
     """Query Work IQ for meeting transcripts.
 
     Args:
         meeting_query: Natural-language query for the meeting, e.g.
             "my most recent team meeting" or "yesterday's standup".
-        list_first: If True, list recent meetings and let the user pick one.
+            If None, lists recent meetings and prompts for selection.
 
     Returns:
         dict with 'transcript' and 'meeting_query' keys.
@@ -94,8 +93,8 @@ def read_meeting_transcript(
         Panel("[bold cyan]Step 1:[/] Reading meeting transcript", subtitle="Work IQ")
     )
 
-    if list_first:
-        # Phase 1 – list meetings
+    if meeting_query is None:
+        # Always list meetings and let the user pick one
         meetings_text = list_recent_meetings()
         console.print()
 
@@ -105,9 +104,6 @@ def read_meeting_transcript(
         )
         meeting_query = f"meeting number {selection} from this list:\n{meetings_text}"
         console.print(f"\n  Selected: [italic]{selection}[/italic]")
-
-    elif meeting_query is None:
-        meeting_query = "my most recent team meeting"
 
     console.print(f"  Query: [italic]{meeting_query}[/italic]\n")
 
@@ -126,6 +122,6 @@ def read_meeting_transcript(
     return result
 
 
-def run(meeting_query: str | None = None, list_first: bool = False):
+def run(meeting_query: str | None = None, **kwargs):
     """Entry point for Step 1."""
-    return read_meeting_transcript(meeting_query, list_first=list_first)
+    return read_meeting_transcript(meeting_query)

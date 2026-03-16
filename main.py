@@ -49,9 +49,7 @@ def show_help():
     console.print(f"  [cyan]all [/cyan]  Run all steps sequentially")
     console.print(f"\n[bold]Usage:[/bold]")
     console.print(f"  python main.py <step>")
-    console.print(f"  python main.py step1 --query \"yesterday's standup\"")
-    console.print(f"  python main.py step1 --list       # pick from recent meetings")
-    console.print()
+    console.print(f"  python main.py step1 --query \"yesterday's standup\"\n")
 
 
 def run_step(step_name: str, **kwargs):
@@ -72,7 +70,6 @@ def run_step(step_name: str, **kwargs):
     if step_name == "step1":
         return module.run(
             meeting_query=kwargs.get("query"),
-            list_first=kwargs.get("list_first", False),
         )
     return module.run()
 
@@ -117,8 +114,6 @@ def cli():
         idx = args.index("--query")
         if idx + 1 < len(args):
             kwargs["query"] = args[idx + 1]
-    if "--list" in args:
-        kwargs["list_first"] = True
 
     if step == "all":
         run_all()
