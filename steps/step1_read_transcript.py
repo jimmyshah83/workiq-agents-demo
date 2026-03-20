@@ -64,6 +64,18 @@ def list_recent_meetings() -> str:
     return meetings
 
 
+def get_meeting_by_name(meeting_name: str) -> str:
+    """Retrieve details of a specific meeting by its name/subject."""
+    console.print(f"[dim]Searching for meeting: {meeting_name}…[/dim]\n")
+    meeting = _workiq_ask(
+        f"Find the Teams meeting named or titled '{meeting_name}'. "
+        f"Return the meeting title, date/time, duration, attendees, "
+        f"and a summary of what was discussed."
+    )
+    console.print(meeting)
+    return meeting
+
+
 def get_transcript_for_meeting(meeting_description: str) -> str:
     """Retrieve transcript / recap for a specific meeting."""
     console.print("\n[dim]Fetching transcript…[/dim]\n")
@@ -78,6 +90,7 @@ def get_transcript_for_meeting(meeting_description: str) -> str:
 
 def read_meeting_transcript(
     meeting_query: str | None = None,
+    meeting_name: str | None = None,
 ) -> dict:
     """Query Work IQ for meeting transcripts.
 
@@ -85,6 +98,7 @@ def read_meeting_transcript(
         meeting_query: Natural-language query for the meeting, e.g.
             "my most recent team meeting" or "yesterday's standup".
             If None, lists recent meetings and prompts for selection.
+        meeting_name: Exact or partial meeting name/subject to look up directly.
 
     Returns:
         dict with 'transcript' and 'meeting_query' keys.
@@ -93,7 +107,12 @@ def read_meeting_transcript(
         Panel("[bold cyan]Step 1:[/] Reading meeting transcript", subtitle="Work IQ")
     )
 
-    if meeting_query is None:
+    if meeting_name:
+        # Look up a specific meeting by name and use its details for the query
+        meeting_info = get_meeting_by_name(meeting_name)
+        meeting_query = f"the meeting titled '{meeting_name}':\n{meeting_info}"
+        console.print(f"\n  Found meeting: [italic]{meeting_name}[/italic]")
+    elif meeting_query is None:
         # Always list meetings and let the user pick one
         meetings_text = list_recent_meetings()
         console.print()
@@ -122,6 +141,6 @@ def read_meeting_transcript(
     return result
 
 
-def run(meeting_query: str | None = None, **kwargs):
+def run(meeting_query: str | None = None, meeting_name: str | None = None, **kwargs):
     """Entry point for Step 1."""
-    return read_meeting_transcript(meeting_query)
+    return read_meeting_transcript(meeting_query, meeting_name=meeting_name)
